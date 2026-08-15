@@ -76,6 +76,28 @@ function buildContext(sessionId) {
   return cleaned;
 }
 
+// ---------- Retry helper with exponential backoff ----------
+async function withRetry(fn, maxRetries = 2, baseDelayMs = 1000) {
+  let lastError;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      const is503 = err.message?.includes("503") || err.message?.includes("Service Unavailable");
+      const is429 = err.message?.includes("429") || err.message?.includes("RESOURCE_EXHAUSTED");
+      if ((is503 || is429) && attempt < maxRetries) {
+        const delay = baseDelayMs * Math.pow(2, attempt);
+        console.warn(`[AI] Retry ${attempt + 1}/${maxRetries} after ${delay}ms (${is503 ? "503" : "429"})`);
+        await new Promise((r) => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastError;
+}
+
 // ---------- Generate AI response ----------
 /**
  * Generate an AI response for a chat session.
@@ -119,9 +141,9 @@ export async function generateResponse(sessionId) {
       safetySettings: SAFETY_SETTINGS,
     });
 
-    // Send the last message
+    // Send the last message (with retry for 503/429)
     const lastMessageText = history[history.length - 1].parts[0].text;
-    let result = await chat.sendMessage(lastMessageText);
+    let result = await withRetry(() => chat.sendMessage(lastMessageText));
     let response = result.response;
     let text = response.text();
     let finishReason = response.promptFeedback?.blockReason || response.candidates?.[0]?.finishReason;
@@ -138,8 +160,8 @@ export async function generateResponse(sessionId) {
         `[AI] Response truncated (MAX_TOKENS) for session ${sessionId.slice(-6)}, continuing... (${continuations}/${AI_CONFIG.maxContinuations})`
       );
       try {
-        // Send a continuation prompt - Gemini will resume from where it stopped
-        const contResult = await chat.sendMessage("تابع من حيث توقفت");
+        // Send a continuation prompt with retry
+        const contResult = await withRetry(() => chat.sendMessage("تابع من حيث توقفت"));
         const contResponse = contResult.response;
         const continuationText = contResponse.text();
         finishReason = contResponse.candidates?.[0]?.finishReason;
@@ -150,11 +172,9 @@ export async function generateResponse(sessionId) {
         }
       } catch (contErr) {
         // Continuation failed (e.g. 503 high demand) - return what we have so far
-        // rather than discarding the entire response
         console.warn(
           `[AI] Continuation ${continuations} failed for session ${sessionId.slice(-6)}: ${contErr.message}. Returning partial response (${text.length} chars).`
         );
-        // Add a note that the response was cut off
         text += "\n\n*(تعذّر إكمال الرد بسبب ضغط على الخادم. يمكنك إعادة المحاولة)*";
         break;
       }

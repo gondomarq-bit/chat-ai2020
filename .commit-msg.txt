@@ -1,8 +1,8 @@
-Fix: preserve partial AI response when continuation fails
+Add retry with exponential backoff for Gemini 503/429 errors
 
-When Gemini returns MAX_TOKENS and the continuation request fails
-(e.g. 503 high demand), return the partial response with a note
-instead of discarding everything and falling back to human.
+Gemini free tier sometimes returns 503 (high demand) or 429 (quota).
+Added withRetry helper that retries up to 2 times with exponential
+backoff (1s, 2s) for both initial request and continuation requests.
 
 Generated with [Devin](https://devin.ai)
 
