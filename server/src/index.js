@@ -25,8 +25,37 @@ import {
   stopMaintenance,
   flushDB,
 } from "./db.js";
+import { AI_CONFIG } from "./config/aiConfig.js";
+import { generateResponse, getAIStatus } from "./services/aiService.js";
 
 dotenv.config();
+
+// ---------- AI mode management (per session) ----------
+// sessionModes: { [sessionId]: "hybrid" | "ai" | "human" }
+// humanTakeover: { [sessionId]: true } - admin took over, AI paused
+const sessionModes = {};
+const humanTakeover = {};
+
+function getSessionMode(sessionId) {
+  return sessionModes[sessionId] || AI_CONFIG.defaultMode;
+}
+
+function setSessionMode(sessionId, mode) {
+  sessionModes[sessionId] = mode;
+  if (mode === "human") {
+    humanTakeover[sessionId] = true;
+  } else {
+    delete humanTakeover[sessionId];
+  }
+}
+
+function isAITurn(sessionId) {
+  const mode = getSessionMode(sessionId);
+  if (mode === "human") return false;
+  if (humanTakeover[sessionId]) return false;
+  if (!AI_CONFIG.enabled) return false;
+  return true; // hybrid or ai mode
+}
 
 const isProduction = process.env.NODE_ENV === "production";
 const PORT = process.env.PORT || 5000;
@@ -149,6 +178,81 @@ app.post("/api/messages/:sessionId/end", (req, res, next) => {
       sessionId: req.params.sessionId,
     });
     res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------- AI API endpoints ----------
+// Get AI status (public, for frontend display)
+app.get("/api/ai/status", (_req, res) => {
+  res.json(getAIStatus());
+});
+
+// Admin: get AI mode for a session
+app.get("/api/admin/ai/:sessionId/mode", authMiddleware, (req, res) => {
+  res.json({
+    sessionId: req.params.sessionId,
+    mode: getSessionMode(req.params.sessionId),
+    humanTakeover: !!humanTakeover[req.params.sessionId],
+  });
+});
+
+// Admin: set AI mode for a session
+app.post("/api/admin/ai/:sessionId/mode", authMiddleware, (req, res, next) => {
+  try {
+    const { mode } = req.body || {};
+    if (!["hybrid", "ai", "human"].includes(mode)) {
+      return res.status(400).json({ error: "Invalid mode. Use: hybrid, ai, or human" });
+    }
+    setSessionMode(req.params.sessionId, mode);
+    // Notify the user's room about mode change
+    io.to(`session_${req.params.sessionId}`).emit("ai_mode_changed", {
+      sessionId: req.params.sessionId,
+      mode,
+    });
+    io.to("admin").emit("ai_mode_changed", {
+      sessionId: req.params.sessionId,
+      mode,
+    });
+    res.json({ ok: true, mode });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Admin: take over a session (pause AI, admin will reply)
+app.post("/api/admin/ai/:sessionId/takeover", authMiddleware, (req, res, next) => {
+  try {
+    humanTakeover[req.params.sessionId] = true;
+    io.to(`session_${req.params.sessionId}`).emit("ai_mode_changed", {
+      sessionId: req.params.sessionId,
+      mode: "human",
+    });
+    io.to("admin").emit("ai_mode_changed", {
+      sessionId: req.params.sessionId,
+      mode: "human",
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Admin: release takeover (let AI resume)
+app.post("/api/admin/ai/:sessionId/release", authMiddleware, (req, res, next) => {
+  try {
+    delete humanTakeover[req.params.sessionId];
+    const mode = getSessionMode(req.params.sessionId);
+    io.to(`session_${req.params.sessionId}`).emit("ai_mode_changed", {
+      sessionId: req.params.sessionId,
+      mode,
+    });
+    io.to("admin").emit("ai_mode_changed", {
+      sessionId: req.params.sessionId,
+      mode,
+    });
+    res.json({ ok: true, mode });
   } catch (err) {
     next(err);
   }
@@ -277,6 +381,64 @@ io.on("connection", (socket) => {
     const msg = addMessage(sessionId, "user", safe);
     io.to(`session_${sessionId}`).emit("message", msg);
     io.to("admin").emit("admin_message", { ...msg, unread: true });
+
+    // ---------- AI auto-reply (hybrid/ai mode) ----------
+    if (isAITurn(sessionId)) {
+      // Show typing indicator to user
+      io.to(`session_${sessionId}`).emit("typing", { sessionId, role: "admin" });
+      io.to("admin").emit("ai_replying", { sessionId });
+
+      // Generate AI response asynchronously
+      (async () => {
+        try {
+          const result = await generateResponse(sessionId);
+
+          // Stop typing indicator
+          io.to(`session_${sessionId}`).emit("stop_typing", { sessionId, role: "admin" });
+          io.to("admin").emit("ai_replying_stopped", { sessionId });
+
+          if (result.success && result.response) {
+            // Check if admin took over while AI was generating
+            if (humanTakeover[sessionId]) {
+              console.log(`[AI] Admin took over during generation for ${sessionId.slice(-6)}, discarding AI reply`);
+              return;
+            }
+            // Save and send AI response
+            const aiMsg = addMessage(sessionId, "admin", result.response);
+            io.to(`session_${sessionId}`).emit("message", aiMsg);
+            io.to("admin").emit("message", { ...aiMsg, isAI: true });
+            console.log(`[AI] Reply sent for session ${sessionId.slice(-6)}`);
+          } else {
+            // AI failed - notify admin to take over
+            console.warn(`[AI] Fallback for session ${sessionId.slice(-6)}: ${result.error}`);
+            io.to("admin").emit("ai_failed", {
+              sessionId,
+              error: result.error,
+              fallbackToHuman: result.fallbackToHuman,
+            });
+            // Notify user that a human will respond
+            if (result.fallbackToHuman) {
+              const fallbackMsg = addMessage(
+                sessionId,
+                "admin",
+                "عذراً، المساعد الآلي غير متاح حالياً. سيقوم فريقنا بالرد عليك قريباً."
+              );
+              io.to(`session_${sessionId}`).emit("message", fallbackMsg);
+              io.to("admin").emit("admin_message", { ...fallbackMsg, unread: true });
+            }
+          }
+        } catch (err) {
+          console.error("[AI] Unexpected error in auto-reply:", err);
+          io.to(`session_${sessionId}`).emit("stop_typing", { sessionId, role: "admin" });
+          io.to("admin").emit("ai_replying_stopped", { sessionId });
+          io.to("admin").emit("ai_failed", {
+            sessionId,
+            error: "Unexpected AI error",
+            fallbackToHuman: true,
+          });
+        }
+      })();
+    }
   });
 
   socket.on("admin_message", ({ sessionId, content }) => {

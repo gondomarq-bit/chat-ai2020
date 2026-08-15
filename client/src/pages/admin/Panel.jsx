@@ -12,6 +12,10 @@ import {
   X,
   Circle,
   RefreshCw,
+  Bot,
+  User,
+  Zap,
+  Hand,
 } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -64,6 +68,9 @@ export default function AdminPanel() {
   const [totalUnread, setTotalUnread] = useState(0);
   const [openTabs, setOpenTabs] = useState([]);
   const [reconnecting, setReconnecting] = useState(false);
+  const [aiStatus, setAiStatus] = useState({ enabled: false, mode: "human" });
+  const [sessionModes, setSessionModes] = useState({}); // per-session AI mode
+  const [aiReplying, setAiReplying] = useState({}); // sessions where AI is currently replying
 
   const audioCtx = useRef(null);
   const messagesEnd = useRef(null);
@@ -98,6 +105,61 @@ export default function AdminPanel() {
   useEffect(() => {
     localStorage.setItem("admin_sound", soundOn ? "on" : "off");
   }, [soundOn]);
+
+  // Load AI status
+  useEffect(() => {
+    if (!authed) return;
+    api
+      .get(apiUrl("/api/ai/status"))
+      .then(({ data }) => setAiStatus(data))
+      .catch(() => {});
+  }, [authed]);
+
+  // Load AI mode when opening a session
+  const loadSessionMode = useCallback(async (sid) => {
+    try {
+      const { data } = await api.get(apiUrl(`/api/admin/ai/${sid}/mode`));
+      setSessionModes((prev) => ({ ...prev, [sid]: data.mode }));
+    } catch {}
+  }, []);
+
+  // Change AI mode for a session
+  const changeSessionMode = useCallback(
+    async (sid, mode) => {
+      try {
+        await api.post(apiUrl(`/api/admin/ai/${sid}/mode`), { mode });
+        setSessionModes((prev) => ({ ...prev, [sid]: mode }));
+        toast.success(
+          mode === "ai" ? "وضع AI مفعّل" : mode === "human" ? "وضع بشري مفعّل" : "وضع هجين مفعّل"
+        );
+      } catch {
+        toast.error("تعذر تغيير الوضع");
+      }
+    },
+    []
+  );
+
+  // Take over a session (pause AI)
+  const takeOverSession = useCallback(async (sid) => {
+    try {
+      await api.post(apiUrl(`/api/admin/ai/${sid}/takeover`));
+      setSessionModes((prev) => ({ ...prev, [sid]: "human" }));
+      toast.success("تم الاستيلاء على المحادثة - AI متوقف");
+    } catch {
+      toast.error("تعذر الاستيلاء");
+    }
+  }, []);
+
+  // Release AI takeover
+  const releaseSession = useCallback(async (sid) => {
+    try {
+      await api.post(apiUrl(`/api/admin/ai/${sid}/release`));
+      setSessionModes((prev) => ({ ...prev, [sid]: "hybrid" }));
+      toast.success("تم إعادة تفعيل AI");
+    } catch {
+      toast.error("تعذر إعادة AI");
+    }
+  }, []);
 
   // Load sessions
   const loadSessions = useCallback(async () => {
@@ -198,6 +260,24 @@ export default function AdminPanel() {
       setMessages((prev) => ({ ...prev, [sessionId]: [] }));
     });
 
+    // AI events
+    socket.on("ai_replying", ({ sessionId }) => {
+      setAiReplying((prev) => ({ ...prev, [sessionId]: true }));
+    });
+
+    socket.on("ai_replying_stopped", ({ sessionId }) => {
+      setAiReplying((prev) => ({ ...prev, [sessionId]: false }));
+    });
+
+    socket.on("ai_mode_changed", ({ sessionId, mode }) => {
+      setSessionModes((prev) => ({ ...prev, [sessionId]: mode }));
+    });
+
+    socket.on("ai_failed", ({ sessionId, error }) => {
+      setAiReplying((prev) => ({ ...prev, [sessionId]: false }));
+      toast.error(`فشل AI في ${sessionId.slice(-6)}: ${error}`);
+    });
+
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
@@ -211,6 +291,10 @@ export default function AdminPanel() {
       socket.off("stop_typing");
       socket.off("session_ended");
       socket.off("messages_cleared");
+      socket.off("ai_replying");
+      socket.off("ai_replying_stopped");
+      socket.off("ai_mode_changed");
+      socket.off("ai_failed");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, authed, beep, loadSessions]);
@@ -225,11 +309,12 @@ export default function AdminPanel() {
         const { data } = await api.get(apiUrl(`/api/admin/messages/${sid}`));
         setMessages((prev) => ({ ...prev, [sid]: data }));
         loadSessions();
+        loadSessionMode(sid);
       } catch {
         toast.error("تعذر تحميل الرسائل");
       }
     },
-    [socket, loadSessions]
+    [socket, loadSessions, loadSessionMode]
   );
 
   // Auto scroll
@@ -413,12 +498,81 @@ export default function AdminPanel() {
         ) : (
           <>
             {/* Chat header */}
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <Circle size={8} className="text-green-500 fill-green-500" />
                 <span className="text-sm font-mono">#{activeId.slice(-6)}</span>
+                {aiReplying[activeId] && (
+                  <span className="flex items-center gap-1 text-[10px] bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300 px-2 py-0.5 rounded-full">
+                    <Bot size={10} className="animate-pulse" />
+                    AI يرد...
+                  </span>
+                )}
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 flex-wrap">
+                {/* AI mode controls */}
+                {aiStatus.enabled && (
+                  <div className="flex items-center gap-1 ml-2 pl-2 border-l border-gray-200 dark:border-gray-700">
+                    <button
+                      onClick={() => changeSessionMode(activeId, "ai")}
+                      className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-md transition ${
+                        sessionModes[activeId] === "ai"
+                          ? "bg-purple-600 text-white"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                      }`}
+                      title="AI يرد تلقائياً"
+                    >
+                      <Bot size={12} />
+                      AI
+                    </button>
+                    <button
+                      onClick={() => changeSessionMode(activeId, "hybrid")}
+                      className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-md transition ${
+                        sessionModes[activeId] === "hybrid"
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                      }`}
+                      title="هجين: AI + تدخل بشري"
+                    >
+                      <Zap size={12} />
+                      هجين
+                    </button>
+                    <button
+                      onClick={() => changeSessionMode(activeId, "human")}
+                      className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-md transition ${
+                        sessionModes[activeId] === "human"
+                          ? "bg-green-600 text-white"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-green-100 dark:hover:bg-green-900/30"
+                      }`}
+                      title="بشري فقط"
+                    >
+                      <User size={12} />
+                      بشري
+                    </button>
+                  </div>
+                )}
+                {/* Take over button */}
+                {aiStatus.enabled && sessionModes[activeId] !== "human" && (
+                  <button
+                    onClick={() => takeOverSession(activeId)}
+                    className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-md bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition"
+                    title="استيلاء بشري - إيقاف AI"
+                  >
+                    <Hand size={12} />
+                    استيلاء
+                  </button>
+                )}
+                {/* Release button */}
+                {aiStatus.enabled && sessionModes[activeId] === "human" && (
+                  <button
+                    onClick={() => releaseSession(activeId)}
+                    className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition"
+                    title="إعادة تفعيل AI"
+                  >
+                    <Bot size={12} />
+                    إعادة AI
+                  </button>
+                )}
                 <button
                   onClick={clearHistory}
                   className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
