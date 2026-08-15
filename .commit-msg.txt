@@ -1,32 +1,8 @@
-Add Google Gemini AI integration (hybrid mode)
+Fix: preserve partial AI response when continuation fails
 
-Features:
-- Google Gemini API integration via @google/generative-ai
-- Model: gemini-1.5-flash (free tier)
-- Hybrid mode: AI replies automatically, admin can take over
-- Arabic-native system prompt (ZedAI assistant persona)
-- Context window: last 10 messages
-- Rate limiting: 15 requests/minute (Gemini free tier)
-- Fallback to human admin when AI fails
-- Per-session mode control: AI / Hybrid / Human
-- Admin "take over" button to pause AI instantly
-- "Release" button to resume AI after takeover
-- AI status indicator in admin panel
-- Modular design: swap to OpenAI by changing aiService.js
-
-New files:
-- server/src/config/aiConfig.js (model config, system prompt, safety)
-- server/src/services/aiService.js (Gemini client, context builder, rate limiter)
-
-New API endpoints:
-- GET  /api/ai/status (public)
-- GET  /api/admin/ai/:sessionId/mode (admin)
-- POST /api/admin/ai/:sessionId/mode (admin: hybrid|ai|human)
-- POST /api/admin/ai/:sessionId/takeover (admin: pause AI)
-- POST /api/admin/ai/:sessionId/release (admin: resume AI)
-
-New env vars:
-- GEMINI_API_KEY, GEMINI_MODEL, AI_MODE, AI_MAX_TOKENS, AI_TEMPERATURE, AI_RATE_LIMIT
+When Gemini returns MAX_TOKENS and the continuation request fails
+(e.g. 503 high demand), return the partial response with a note
+instead of discarding everything and falling back to human.
 
 Generated with [Devin](https://devin.ai)
 

@@ -137,14 +137,25 @@ export async function generateResponse(sessionId) {
       console.log(
         `[AI] Response truncated (MAX_TOKENS) for session ${sessionId.slice(-6)}, continuing... (${continuations}/${AI_CONFIG.maxContinuations})`
       );
-      // Send an empty continuation prompt - Gemini will resume from where it stopped
-      result = await chat.sendMessage("تابع من حيث توقفت");
-      response = result.response;
-      const continuationText = response.text();
-      finishReason = response.candidates?.[0]?.finishReason;
-      if (continuationText) {
-        text += continuationText;
-      } else {
+      try {
+        // Send a continuation prompt - Gemini will resume from where it stopped
+        const contResult = await chat.sendMessage("تابع من حيث توقفت");
+        const contResponse = contResult.response;
+        const continuationText = contResponse.text();
+        finishReason = contResponse.candidates?.[0]?.finishReason;
+        if (continuationText && continuationText.trim().length > 0) {
+          text += continuationText;
+        } else {
+          break;
+        }
+      } catch (contErr) {
+        // Continuation failed (e.g. 503 high demand) - return what we have so far
+        // rather than discarding the entire response
+        console.warn(
+          `[AI] Continuation ${continuations} failed for session ${sessionId.slice(-6)}: ${contErr.message}. Returning partial response (${text.length} chars).`
+        );
+        // Add a note that the response was cut off
+        text += "\n\n*(تعذّر إكمال الرد بسبب ضغط على الخادم. يمكنك إعادة المحاولة)*";
         break;
       }
     }
