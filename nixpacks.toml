@@ -1,0 +1,21 @@
+# Nixpacks build configuration for Railway
+# Builds the React frontend and copies it into server/public,
+# then Railway runs the Node server which serves both API and frontend.
+
+[phases.setup]
+nixPkgs = ["...", "nodejs_20"]
+
+[phases.install]
+cmds = [
+  "cd client && npm install --no-audit --no-fund",
+  "cd server && npm install --no-audit --no-fund"
+]
+
+[phases.build]
+cmds = [
+  "cd client && npm run build",
+  "rm -rf server/public && mkdir -p server/public && cp -r client/dist/* server/public/"
+]
+
+[start]
+cmd = "cd server && npm start"
