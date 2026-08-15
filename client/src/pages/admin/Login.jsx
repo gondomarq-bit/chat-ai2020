@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Lock, User, ShieldCheck, Loader2, AlertCircle } from "lucide-react";
+import { Lock, User, Loader2, AlertCircle } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { apiUrl } from "../../config.js";
+import Logo from "../../components/Logo.jsx";
 
 export default function AdminLogin() {
   const [username, setUsername] = useState("");
@@ -50,11 +51,11 @@ export default function AdminLogin() {
         className="w-full max-w-sm bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8"
       >
         <div className="flex flex-col items-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg mb-3">
-            <ShieldCheck size={32} className="text-white" />
+          <div className="mb-3">
+            <Logo size={72} />
           </div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-            لوحة تحكم المدير
+            لوحة تحكم ZedAI
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             تسجيل الدخول لإدارة المحادثات

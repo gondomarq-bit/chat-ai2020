@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, Moon, Sun, LogOut, Trash2, WifiOff, RefreshCw } from "lucide-react";
+import { Send, Moon, Sun, LogOut, Trash2, WifiOff, RefreshCw } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useSocket } from "../context/SocketContext.jsx";
 import { apiUrl } from "../config.js";
+import Logo from "../components/Logo.jsx";
 import MessageBubble from "../components/MessageBubble.jsx";
 import TypingIndicator from "../components/TypingIndicator.jsx";
 
@@ -154,11 +155,9 @@ export default function Chat() {
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-            <Bot size={20} className="text-white" />
-          </div>
+          <Logo size={40} withText />
           <div>
-            <h1 className="font-bold text-sm sm:text-base">AI Assistant</h1>
+            <h1 className="font-bold text-sm sm:text-base">ZedAI Assistant</h1>
             <p className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1">
               <span
                 className={`w-2 h-2 rounded-full ${
@@ -219,12 +218,12 @@ export default function Chat() {
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-xl mb-4"
+              className="mb-4"
             >
-              <Bot size={40} className="text-white" />
+              <Logo size={100} />
             </motion.div>
             <h2 className="text-xl font-bold mb-2">
-              مرحباً! كيف يمكنني مساعدتك اليوم؟
+              مرحباً! أنا ZedAI - كيف يمكنني مساعدتك اليوم؟
             </h2>
             <p className="text-gray-500 dark:text-gray-400 text-sm max-w-md">
               اكتب رسالتك بالأسفل وسيقوم فريقنا بالرد عليك مباشرة.
