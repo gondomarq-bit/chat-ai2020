@@ -120,11 +120,12 @@ app.post("/api/admin/login", (req, res, next) => {
 });
 
 // ---------- Public chat API ----------
+// Always generate a NEW unique session ID for each request.
+// This ensures every user gets their own isolated chat session.
 app.post("/api/session", (req, res, next) => {
   try {
-    const sessionId =
-      req.body?.sessionId ||
-      `s_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    // Generate a unique session ID using crypto.randomUUID
+    const sessionId = `s_${crypto.randomUUID()}`;
     const ua = req.headers["user-agent"] || "";
     const session = createSession(sessionId, ua);
     res.json({ sessionId, session });

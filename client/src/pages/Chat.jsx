@@ -11,10 +11,18 @@ import TypingIndicator from "../components/TypingIndicator.jsx";
 
 const SESSION_KEY = "chat_session_id";
 
+// Generate a unique session ID using crypto.randomUUID when available
+function generateSessionId() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return `s_${crypto.randomUUID()}`;
+  }
+  return `s_${Date.now()}_${Math.random().toString(36).slice(2, 10)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export default function Chat() {
   const socket = useSocket();
   const [sessionId, setSessionId] = useState(
-    () => localStorage.getItem(SESSION_KEY) || ""
+    () => sessionStorage.getItem(SESSION_KEY) || ""
   );
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -34,13 +42,15 @@ export default function Chat() {
     localStorage.setItem("theme", dark ? "dark" : "light");
   }, [dark]);
 
-  // Initialize session
+  // Initialize session - always create a NEW unique session per browser tab
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await axios.post(apiUrl("/api/session"), { sessionId });
+        // Always request a brand new session from the backend
+        // Do NOT send the old sessionId - each user gets their own
+        const { data } = await axios.post(apiUrl("/api/session"), {});
         const sid = data.sessionId;
-        localStorage.setItem(SESSION_KEY, sid);
+        sessionStorage.setItem(SESSION_KEY, sid);
         setSessionId(sid);
         const m = await axios.get(apiUrl(`/api/messages/${sid}`));
         setMessages(m.data);
@@ -143,7 +153,7 @@ export default function Chat() {
   };
 
   const newChat = () => {
-    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
     setSessionId("");
     setMessages([]);
     setEnded(false);
