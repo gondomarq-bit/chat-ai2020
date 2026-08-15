@@ -9,10 +9,13 @@ export const AI_CONFIG = {
   // Generation parameters
   generationConfig: {
     temperature: parseFloat(process.env.AI_TEMPERATURE || "0.7"),
-    maxOutputTokens: parseInt(process.env.AI_MAX_TOKENS || "500", 10),
+    maxOutputTokens: parseInt(process.env.AI_MAX_TOKENS || "2000", 10),
     topP: 0.95,
     topK: 40,
   },
+
+  // Max continuation requests when response is cut off by MAX_TOKENS
+  maxContinuations: 3,
 
   // Rate limiting (Gemini free tier: 15 RPM)
   rateLimit: {

@@ -121,9 +121,39 @@ export async function generateResponse(sessionId) {
 
     // Send the last message
     const lastMessageText = history[history.length - 1].parts[0].text;
-    const result = await chat.sendMessage(lastMessageText);
-    const response = result.response;
-    const text = response.text();
+    let result = await chat.sendMessage(lastMessageText);
+    let response = result.response;
+    let text = response.text();
+    let finishReason = response.promptFeedback?.blockReason || response.candidates?.[0]?.finishReason;
+
+    // Handle MAX_TOKENS: continue generating until the response is complete
+    let continuations = 0;
+    while (
+      finishReason === "MAX_TOKENS" &&
+      continuations < AI_CONFIG.maxContinuations &&
+      text.length > 0
+    ) {
+      continuations++;
+      console.log(
+        `[AI] Response truncated (MAX_TOKENS) for session ${sessionId.slice(-6)}, continuing... (${continuations}/${AI_CONFIG.maxContinuations})`
+      );
+      // Send an empty continuation prompt - Gemini will resume from where it stopped
+      result = await chat.sendMessage("تابع من حيث توقفت");
+      response = result.response;
+      const continuationText = response.text();
+      finishReason = response.candidates?.[0]?.finishReason;
+      if (continuationText) {
+        text += continuationText;
+      } else {
+        break;
+      }
+    }
+
+    if (continuations > 0) {
+      console.log(
+        `[AI] Response completed after ${continuations} continuation(s) for session ${sessionId.slice(-6)} (${text.length} chars total)`
+      );
+    }
 
     if (!text || text.trim().length === 0) {
       console.warn("[AI] Empty response from Gemini");
