@@ -6,7 +6,12 @@ export default function Logo({ size = 40, withText = false, className = "" }) {
       <img
         src={logoSvg}
         alt="ZedAI - AI Yemen"
-        style={{ width: size, height: size, objectFit: "contain" }}
+        style={{
+          width: size,
+          height: size,
+          objectFit: "contain",
+          borderRadius: "50%",
+        }}
         className="shrink-0"
       />
       {withText && (

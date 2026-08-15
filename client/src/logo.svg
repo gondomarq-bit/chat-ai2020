@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
   <defs>
     <!-- Blue glow filter -->
     <filter id="blueGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -11,8 +11,8 @@
       </feMerge>
     </filter>
     <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4" result="blur1"/>
-      <feGaussianBlur stdDeviation="10" result="blur2"/>
+      <feGaussianBlur stdDeviation="3" result="blur1"/>
+      <feGaussianBlur stdDeviation="8" result="blur2"/>
       <feMerge>
         <feMergeNode in="blur2"/>
         <feMergeNode in="blur1"/>
@@ -32,161 +32,158 @@
       <stop offset="50%" stop-color="#3b82f6"/>
       <stop offset="100%" stop-color="#1d4ed8"/>
     </linearGradient>
-    <!-- Circuit line gradient -->
-    <linearGradient id="circuitGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#1e3a8a" stop-opacity="0.2"/>
-      <stop offset="50%" stop-color="#3b82f6" stop-opacity="0.8"/>
-      <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0.2"/>
-    </linearGradient>
-    <!-- Dark background gradient -->
-    <radialGradient id="bgGrad" cx="50%" cy="50%" r="70%">
+    <!-- Dark circular background gradient -->
+    <radialGradient id="bgGrad" cx="50%" cy="45%" r="55%">
       <stop offset="0%" stop-color="#0f172a"/>
       <stop offset="60%" stop-color="#020617"/>
       <stop offset="100%" stop-color="#000000"/>
     </radialGradient>
+    <!-- Ring gradient -->
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="50%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
   </defs>
 
-  <!-- Dark background -->
-  <rect width="400" height="200" rx="12" fill="url(#bgGrad)"/>
+  <!-- Circular dark background -->
+  <circle cx="100" cy="100" r="98" fill="url(#bgGrad)"/>
 
-  <!-- Server rack silhouettes (left side) -->
-  <g opacity="0.25">
-    <rect x="8" y="30" width="22" height="140" rx="2" fill="#1e293b" stroke="#334155" stroke-width="0.5"/>
-    <rect x="32" y="45" width="22" height="125" rx="2" fill="#1e293b" stroke="#334155" stroke-width="0.5"/>
-    <!-- Server LEDs -->
-    <circle cx="14" cy="40" r="1" fill="#3b82f6" opacity="0.6"/>
-    <circle cx="14" cy="50" r="1" fill="#3b82f6" opacity="0.4"/>
-    <circle cx="14" cy="60" r="1" fill="#22c55e" opacity="0.5"/>
-    <circle cx="14" cy="70" r="1" fill="#3b82f6" opacity="0.3"/>
-    <circle cx="38" cy="55" r="1" fill="#3b82f6" opacity="0.5"/>
-    <circle cx="38" cy="65" r="1" fill="#22c55e" opacity="0.4"/>
-    <circle cx="38" cy="75" r="1" fill="#3b82f6" opacity="0.3"/>
-    <!-- Rack lines -->
-    <line x1="8" y1="55" x2="30" y2="55" stroke="#334155" stroke-width="0.3"/>
-    <line x1="8" y1="75" x2="30" y2="75" stroke="#334155" stroke-width="0.3"/>
-    <line x1="8" y1="95" x2="30" y2="95" stroke="#334155" stroke-width="0.3"/>
-    <line x1="8" y1="115" x2="30" y2="115" stroke="#334155" stroke-width="0.3"/>
-    <line x1="8" y1="135" x2="30" y2="135" stroke="#334155" stroke-width="0.3"/>
-    <line x1="32" y1="65" x2="54" y2="65" stroke="#334155" stroke-width="0.3"/>
-    <line x1="32" y1="85" x2="54" y2="85" stroke="#334155" stroke-width="0.3"/>
-    <line x1="32" y1="105" x2="54" y2="105" stroke="#334155" stroke-width="0.3"/>
-    <line x1="32" y1="125" x2="54" y2="125" stroke="#334155" stroke-width="0.3"/>
-    <line x1="32" y1="145" x2="54" y2="145" stroke="#334155" stroke-width="0.3"/>
+  <!-- Outer glowing ring -->
+  <circle cx="100" cy="100" r="96" fill="none" stroke="url(#ringGrad)" stroke-width="1.5" opacity="0.6" filter="url(#softGlow)"/>
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#1e3a8a" stroke-width="0.5" opacity="0.4"/>
+
+  <!-- Server rack silhouettes (left side, curved to fit circle) -->
+  <g opacity="0.2">
+    <rect x="18" y="50" width="14" height="100" rx="2" fill="#1e293b" stroke="#334155" stroke-width="0.4"/>
+    <rect x="34" y="60" width="14" height="90" rx="2" fill="#1e293b" stroke="#334155" stroke-width="0.4"/>
+    <circle cx="22" cy="58" r="0.8" fill="#3b82f6" opacity="0.6"/>
+    <circle cx="22" cy="66" r="0.8" fill="#22c55e" opacity="0.5"/>
+    <circle cx="22" cy="74" r="0.8" fill="#3b82f6" opacity="0.4"/>
+    <circle cx="38" cy="68" r="0.8" fill="#3b82f6" opacity="0.5"/>
+    <circle cx="38" cy="76" r="0.8" fill="#22c55e" opacity="0.4"/>
+    <line x1="18" y1="62" x2="32" y2="62" stroke="#334155" stroke-width="0.3"/>
+    <line x1="18" y1="78" x2="32" y2="78" stroke="#334155" stroke-width="0.3"/>
+    <line x1="18" y1="94" x2="32" y2="94" stroke="#334155" stroke-width="0.3"/>
+    <line x1="18" y1="110" x2="32" y2="110" stroke="#334155" stroke-width="0.3"/>
+    <line x1="18" y1="126" x2="32" y2="126" stroke="#334155" stroke-width="0.3"/>
+    <line x1="34" y1="72" x2="48" y2="72" stroke="#334155" stroke-width="0.3"/>
+    <line x1="34" y1="88" x2="48" y2="88" stroke="#334155" stroke-width="0.3"/>
+    <line x1="34" y1="104" x2="48" y2="104" stroke="#334155" stroke-width="0.3"/>
+    <line x1="34" y1="120" x2="48" y2="120" stroke="#334155" stroke-width="0.3"/>
+    <line x1="34" y1="136" x2="48" y2="136" stroke="#334155" stroke-width="0.3"/>
   </g>
 
   <!-- Server rack silhouettes (right side) -->
-  <g opacity="0.25">
-    <rect x="370" y="35" width="22" height="135" rx="2" fill="#1e293b" stroke="#334155" stroke-width="0.5"/>
-    <rect x="346" y="50" width="22" height="120" rx="2" fill="#1e293b" stroke="#334155" stroke-width="0.5"/>
-    <circle cx="376" cy="45" r="1" fill="#3b82f6" opacity="0.5"/>
-    <circle cx="376" cy="55" r="1" fill="#22c55e" opacity="0.4"/>
-    <circle cx="376" cy="65" r="1" fill="#3b82f6" opacity="0.3"/>
-    <circle cx="352" cy="60" r="1" fill="#3b82f6" opacity="0.4"/>
-    <circle cx="352" cy="70" r="1" fill="#22c55e" opacity="0.3"/>
-    <line x1="346" y1="70" x2="368" y2="70" stroke="#334155" stroke-width="0.3"/>
-    <line x1="346" y1="90" x2="368" y2="90" stroke="#334155" stroke-width="0.3"/>
-    <line x1="346" y1="110" x2="368" y2="110" stroke="#334155" stroke-width="0.3"/>
-    <line x1="346" y1="130" x2="368" y2="130" stroke="#334155" stroke-width="0.3"/>
-    <line x1="370" y1="60" x2="392" y2="60" stroke="#334155" stroke-width="0.3"/>
-    <line x1="370" y1="80" x2="392" y2="80" stroke="#334155" stroke-width="0.3"/>
-    <line x1="370" y1="100" x2="392" y2="100" stroke="#334155" stroke-width="0.3"/>
-    <line x1="370" y1="120" x2="392" y2="120" stroke="#334155" stroke-width="0.3"/>
-    <line x1="370" y1="140" x2="392" y2="140" stroke="#334155" stroke-width="0.3"/>
+  <g opacity="0.2">
+    <rect x="168" y="55" width="14" height="95" rx="2" fill="#1e293b" stroke="#334155" stroke-width="0.4"/>
+    <rect x="152" y="65" width="14" height="85" rx="2" fill="#1e293b" stroke="#334155" stroke-width="0.4"/>
+    <circle cx="172" cy="63" r="0.8" fill="#3b82f6" opacity="0.5"/>
+    <circle cx="172" cy="71" r="0.8" fill="#22c55e" opacity="0.4"/>
+    <circle cx="172" cy="79" r="0.8" fill="#3b82f6" opacity="0.3"/>
+    <circle cx="156" cy="73" r="0.8" fill="#3b82f6" opacity="0.4"/>
+    <circle cx="156" cy="81" r="0.8" fill="#22c55e" opacity="0.3"/>
+    <line x1="152" y1="77" x2="166" y2="77" stroke="#334155" stroke-width="0.3"/>
+    <line x1="152" y1="93" x2="166" y2="93" stroke="#334155" stroke-width="0.3"/>
+    <line x1="152" y1="109" x2="166" y2="109" stroke="#334155" stroke-width="0.3"/>
+    <line x1="152" y1="125" x2="166" y2="125" stroke="#334155" stroke-width="0.3"/>
+    <line x1="168" y1="67" x2="182" y2="67" stroke="#334155" stroke-width="0.3"/>
+    <line x1="168" y1="83" x2="182" y2="83" stroke="#334155" stroke-width="0.3"/>
+    <line x1="168" y1="99" x2="182" y2="99" stroke="#334155" stroke-width="0.3"/>
+    <line x1="168" y1="115" x2="182" y2="115" stroke="#334155" stroke-width="0.3"/>
+    <line x1="168" y1="131" x2="182" y2="131" stroke="#334155" stroke-width="0.3"/>
   </g>
 
   <!-- Circuit lines extending outward from Z -->
-  <g stroke="#3b82f6" stroke-width="1" fill="none" opacity="0.5" filter="url(#softGlow)">
+  <g stroke="#3b82f6" stroke-width="0.8" fill="none" opacity="0.45" filter="url(#softGlow)">
     <!-- Left horizontal lines -->
-    <path d="M 120 75 L 70 75 L 70 85 L 55 85" stroke-dasharray="0"/>
-    <path d="M 120 95 L 80 95 L 80 105 L 60 105 L 60 115" />
-    <path d="M 120 110 L 75 110 L 75 125 L 50 125" />
+    <path d="M 75 80 L 55 80 L 55 88 L 42 88"/>
+    <path d="M 75 95 L 58 95 L 58 103 L 45 103 L 45 112"/>
+    <path d="M 75 108 L 52 108 L 52 120 L 38 120"/>
     <!-- Right horizontal lines -->
-    <path d="M 200 75 L 250 75 L 250 85 L 270 85" />
-    <path d="M 200 95 L 245 95 L 245 105 L 265 105 L 265 115" />
-    <path d="M 200 110 L 255 110 L 255 125 L 280 125" />
+    <path d="M 125 80 L 145 80 L 145 88 L 158 88"/>
+    <path d="M 125 95 L 142 95 L 142 103 L 155 103 L 155 112"/>
+    <path d="M 125 108 L 148 108 L 148 120 L 162 120"/>
     <!-- Downward lines -->
-    <path d="M 160 120 L 160 145 L 130 145 L 130 160" />
-    <path d="M 160 120 L 160 145 L 190 145 L 190 160" />
+    <path d="M 100 115 L 100 135 L 80 135 L 80 148"/>
+    <path d="M 100 115 L 100 135 L 120 135 L 120 148"/>
     <!-- Circuit nodes -->
-    <circle cx="70" cy="75" r="1.5" fill="#60a5fa"/>
-    <circle cx="80" cy="95" r="1.5" fill="#60a5fa"/>
-    <circle cx="75" cy="110" r="1.5" fill="#60a5fa"/>
-    <circle cx="250" cy="75" r="1.5" fill="#60a5fa"/>
-    <circle cx="245" cy="95" r="1.5" fill="#60a5fa"/>
-    <circle cx="255" cy="110" r="1.5" fill="#60a5fa"/>
-    <circle cx="130" cy="145" r="1.5" fill="#60a5fa"/>
-    <circle cx="190" cy="145" r="1.5" fill="#60a5fa"/>
-    <rect x="68" y="83" width="4" height="4" fill="none" stroke="#3b82f6" stroke-width="0.5"/>
-    <rect x="248" y="83" width="4" height="4" fill="none" stroke="#3b82f6" stroke-width="0.5"/>
+    <circle cx="55" cy="80" r="1.2" fill="#60a5fa"/>
+    <circle cx="58" cy="95" r="1.2" fill="#60a5fa"/>
+    <circle cx="52" cy="108" r="1.2" fill="#60a5fa"/>
+    <circle cx="145" cy="80" r="1.2" fill="#60a5fa"/>
+    <circle cx="142" cy="95" r="1.2" fill="#60a5fa"/>
+    <circle cx="148" cy="108" r="1.2" fill="#60a5fa"/>
+    <circle cx="80" cy="135" r="1.2" fill="#60a5fa"/>
+    <circle cx="120" cy="135" r="1.2" fill="#60a5fa"/>
+    <rect x="53" y="86" width="3" height="3" fill="none" stroke="#3b82f6" stroke-width="0.4"/>
+    <rect x="143" y="86" width="3" height="3" fill="none" stroke="#3b82f6" stroke-width="0.4"/>
   </g>
 
   <!-- Speech bubbles (translucent, blue glowing outline) -->
   <g filter="url(#softGlow)">
     <!-- Top-left bubble -->
-    <g opacity="0.5">
-      <path d="M 85 35 Q 85 25 95 25 L 120 25 Q 130 25 130 35 L 130 42 Q 130 52 120 52 L 100 52 L 95 57 L 95 52 Q 85 52 85 42 Z"
-            fill="#0c1a3e" stroke="#3b82f6" stroke-width="1"/>
-      <line x1="92" y1="33" x2="123" y2="33" stroke="#3b82f6" stroke-width="0.5" opacity="0.7"/>
-      <line x1="92" y1="38" x2="118" y2="38" stroke="#3b82f6" stroke-width="0.5" opacity="0.7"/>
-      <line x1="92" y1="43" x2="125" y2="43" stroke="#3b82f6" stroke-width="0.5" opacity="0.7"/>
-      <line x1="92" y1="48" x2="110" y2="48" stroke="#3b82f6" stroke-width="0.5" opacity="0.7"/>
+    <g opacity="0.45">
+      <path d="M 55 38 Q 55 30 62 30 L 82 30 Q 89 30 89 38 L 89 44 Q 89 51 82 51 L 68 51 L 64 55 L 64 51 Q 55 51 55 44 Z"
+            fill="#0c1a3e" stroke="#3b82f6" stroke-width="0.8"/>
+      <line x1="60" y1="36" x2="84" y2="36" stroke="#3b82f6" stroke-width="0.4" opacity="0.7"/>
+      <line x1="60" y1="40" x2="80" y2="40" stroke="#3b82f6" stroke-width="0.4" opacity="0.7"/>
+      <line x1="60" y1="44" x2="82" y2="44" stroke="#3b82f6" stroke-width="0.4" opacity="0.7"/>
+      <line x1="60" y1="48" x2="74" y2="48" stroke="#3b82f6" stroke-width="0.4" opacity="0.7"/>
     </g>
     <!-- Top-right bubble -->
-    <g opacity="0.45">
-      <path d="M 210 30 Q 210 20 220 20 L 250 20 Q 260 20 260 30 L 260 38 Q 260 48 250 48 L 228 48 L 223 53 L 223 48 Q 210 48 210 38 Z"
-            fill="#0c1a3e" stroke="#3b82f6" stroke-width="1"/>
-      <line x1="217" y1="28" x2="253" y2="28" stroke="#3b82f6" stroke-width="0.5" opacity="0.7"/>
-      <line x1="217" y1="34" x2="248" y2="34" stroke="#3b82f6" stroke-width="0.5" opacity="0.7"/>
-      <line x1="217" y1="40" x2="255" y2="40" stroke="#3b82f6" stroke-width="0.5" opacity="0.7"/>
-      <line x1="217" y1="45" x2="240" y2="45" stroke="#3b82f6" stroke-width="0.5" opacity="0.7"/>
+    <g opacity="0.4">
+      <path d="M 115 33 Q 115 26 121 26 L 140 26 Q 146 26 146 33 L 146 39 Q 146 46 140 46 L 122 46 L 118 50 L 118 46 Q 115 46 115 39 Z"
+            fill="#0c1a3e" stroke="#3b82f6" stroke-width="0.8"/>
+      <line x1="120" y1="31" x2="141" y2="31" stroke="#3b82f6" stroke-width="0.4" opacity="0.7"/>
+      <line x1="120" y1="35" x2="138" y2="35" stroke="#3b82f6" stroke-width="0.4" opacity="0.7"/>
+      <line x1="120" y1="39" x2="140" y2="39" stroke="#3b82f6" stroke-width="0.4" opacity="0.7"/>
+      <line x1="120" y1="43" x2="134" y2="43" stroke="#3b82f6" stroke-width="0.4" opacity="0.7"/>
     </g>
     <!-- Bottom-left small bubble -->
-    <g opacity="0.4">
-      <path d="M 75 155 Q 75 148 82 148 L 100 148 Q 107 148 107 155 L 107 162 Q 107 169 100 169 L 85 169 L 80 173 L 80 169 Q 75 169 75 162 Z"
-            fill="#0c1a3e" stroke="#3b82f6" stroke-width="0.8"/>
-      <line x1="80" y1="153" x2="102" y2="153" stroke="#3b82f6" stroke-width="0.4" opacity="0.7"/>
-      <line x1="80" y1="158" x2="98" y2="158" stroke="#3b82f6" stroke-width="0.4" opacity="0.7"/>
-      <line x1="80" y1="163" x2="100" y2="163" stroke="#3b82f6" stroke-width="0.4" opacity="0.7"/>
+    <g opacity="0.35">
+      <path d="M 45 150 Q 45 144 50 144 L 65 144 Q 70 144 70 150 L 70 155 Q 70 161 65 161 L 52 161 L 48 164 L 48 161 Q 45 161 45 155 Z"
+            fill="#0c1a3e" stroke="#3b82f6" stroke-width="0.6"/>
+      <line x1="49" y1="148" x2="66" y2="148" stroke="#3b82f6" stroke-width="0.3" opacity="0.7"/>
+      <line x1="49" y1="152" x2="62" y2="152" stroke="#3b82f6" stroke-width="0.3" opacity="0.7"/>
+      <line x1="49" y1="156" x2="64" y2="156" stroke="#3b82f6" stroke-width="0.3" opacity="0.7"/>
     </g>
     <!-- Bottom-right small bubble -->
-    <g opacity="0.4">
-      <path d="M 295 150 Q 295 143 302 143 L 320 143 Q 327 143 327 150 L 327 157 Q 327 164 320 164 L 305 164 L 300 168 L 300 164 Q 295 164 295 157 Z"
-            fill="#0c1a3e" stroke="#3b82f6" stroke-width="0.8"/>
-      <line x1="300" y1="148" x2="322" y2="148" stroke="#3b82f6" stroke-width="0.4" opacity="0.7"/>
-      <line x1="300" y1="153" x2="318" y2="153" stroke="#3b82f6" stroke-width="0.4" opacity="0.7"/>
-      <line x1="300" y1="158" x2="320" y2="158" stroke="#3b82f6" stroke-width="0.4" opacity="0.7"/>
+    <g opacity="0.35">
+      <path d="M 135 148 Q 135 142 140 142 L 155 142 Q 160 142 160 148 L 160 154 Q 160 160 155 160 L 142 160 L 138 164 L 138 160 Q 135 160 135 154 Z"
+            fill="#0c1a3e" stroke="#3b82f6" stroke-width="0.6"/>
+      <line x1="139" y1="146" x2="156" y2="146" stroke="#3b82f6" stroke-width="0.3" opacity="0.7"/>
+      <line x1="139" y1="150" x2="152" y2="150" stroke="#3b82f6" stroke-width="0.3" opacity="0.7"/>
+      <line x1="139" y1="154" x2="154" y2="154" stroke="#3b82f6" stroke-width="0.3" opacity="0.7"/>
     </g>
   </g>
 
-  <!-- Stylized Z with upward arrow integrated -->
+  <!-- Stylized Z with upward arrow integrated (centered in circle) -->
   <g filter="url(#strongGlow)">
     <!-- Z shape with arrow integrated -->
-    <path d="M 120 50 L 200 50 L 200 55 L 135 110 L 195 110 L 195 105 L 200 105 L 200 120 L 120 120 L 120 115 L 185 60 L 120 60 Z"
-          fill="url(#zGradient)" stroke="#60a5fa" stroke-width="0.5"/>
-    <!-- Upward arrow integrated into Z (the top bar extends upward) -->
-    <path d="M 155 30 L 165 45 L 160 45 L 160 50 L 150 50 L 150 45 L 145 45 Z"
+    <path d="M 75 58 L 125 58 L 125 62 L 88 100 L 122 100 L 122 96 L 125 96 L 125 110 L 75 110 L 75 106 L 112 68 L 75 68 Z"
+          fill="url(#zGradient)" stroke="#60a5fa" stroke-width="0.4"/>
+    <!-- Upward arrow integrated into Z top -->
+    <path d="M 96 40 L 104 52 L 100 52 L 100 58 L 92 58 L 92 52 L 88 52 Z"
           fill="#60a5fa" opacity="0.9"/>
     <!-- Arrow tip glow -->
-    <path d="M 155 28 L 167 46 L 160 46 L 160 50 L 150 50 L 150 46 L 143 46 Z"
-          fill="none" stroke="#93c5fd" stroke-width="0.5" opacity="0.6"/>
+    <path d="M 96 38 L 106 53 L 100 53 L 100 58 L 92 58 L 92 53 L 86 53 Z"
+          fill="none" stroke="#93c5fd" stroke-width="0.4" opacity="0.6"/>
   </g>
 
   <!-- "edAI" text to the right of Z -->
   <g filter="url(#blueGlow)">
-    <text x="210" y="95" font-family="'Segoe UI', 'Tahoma', sans-serif" font-size="38" font-weight="700"
-          fill="#7dd3fc" letter-spacing="1">
+    <text x="130" y="88" font-family="'Segoe UI', 'Tahoma', sans-serif" font-size="22" font-weight="700"
+          fill="#7dd3fc" letter-spacing="0.5">
       edAI
     </text>
   </g>
 
-  <!-- "AI YEMEN" text below -->
+  <!-- "AI YEMEN" text at bottom of circle -->
   <g filter="url(#softGlow)">
-    <text x="200" y="175" font-family="'Segoe UI', 'Tahoma', sans-serif" font-size="16" font-weight="600"
-          fill="#ffffff" text-anchor="middle" letter-spacing="4">
+    <text x="100" y="175" font-family="'Segoe UI', 'Tahoma', sans-serif" font-size="11" font-weight="600"
+          fill="#ffffff" text-anchor="middle" letter-spacing="3">
       AI YEMEN
     </text>
   </g>
-
-  <!-- Subtle scan line effect -->
-  <rect x="0" y="0" width="400" height="200" fill="none" stroke="#1e3a8a" stroke-width="0.3" opacity="0.3" rx="12"/>
 </svg>
